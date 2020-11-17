@@ -1,8 +1,8 @@
 {
   "name": "air-monitoring-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Backend for the Air Monitoring PWA project.",
+  "author": "Ali Raiki & Raphaël Dhôte",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
