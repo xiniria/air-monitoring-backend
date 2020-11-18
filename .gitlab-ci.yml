@@ -1,10 +1,10 @@
 image: node:14
 
 stages:
-  - lint
-  - test
-  - test e2e
-  - audit
+  - Lint
+  - Test
+  - Build
+  - Audit
 
 cache:
   key:
@@ -14,23 +14,28 @@ cache:
     - node_modules
 
 lint:
-  stage: lint
+  stage: Lint
   before_script:
     - npm install
   script:
     - npm run lint:ci
 
 test:
-  stage: test
+  stage: Test
   script:
     - npm run test
 
 test_e2e:
-  stage: test e2e
+  stage: Test
   script:
     - npm run test:e2e
 
+build:
+  stage: Build
+  script:
+    - npm run build
+
 audit:
-  stage: audit
+  stage: Audit
   script:
     - npm audit
