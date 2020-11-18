@@ -5,6 +5,10 @@
   "author": "Ali Raiki & Raphaël Dhôte",
   "private": true,
   "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.illuin.tech/3ACentrale/2020-air-monitoring-pwa/air-monitoring-backend"
+  },
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
