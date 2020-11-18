@@ -1,17 +1,28 @@
 image: node:14
 
 stages:
+  - Prepare
   - Lint
   - Test
   - Build
   - Audit
 
-cache:
+cache: &global_cache
   key:
     files:
       - package-lock.json
   paths:
     - node_modules
+  policy: pull
+
+prepare:
+  stage: Prepare
+  cache:
+    # inherit global_cache properties, override policy
+    <<: *global_cache
+    policy: pull-push
+  script:
+    - npm install
 
 lint:
   stage: Lint
