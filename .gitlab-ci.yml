@@ -5,7 +5,7 @@ stages:
   - Lint
   - Test
   - Build
-  - Audit
+  - Security
 
 cache: &global_cache
   key:
@@ -47,6 +47,11 @@ build:
     - npm run build
 
 audit:
-  stage: Audit
+  stage: Security
   script:
     - npm audit
+
+lockfile_lint:
+  stage: Security
+  script:
+    - npm run lockfile-lint
