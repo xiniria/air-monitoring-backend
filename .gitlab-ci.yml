@@ -37,7 +37,15 @@ test:
     - npm run test
 
 test_e2e:
+  variables:
+    POSTGRES_DB: "$PG_DATABASE"
+    POSTGRES_USER: "$PG_USER"
+    POSTGRES_PASSWORD: "$PG_PASSWORD"
+  services:
+    - name: postgres:13.1-alpine
   stage: Test
+  before_script:
+    - npm run migrate
   script:
     - npm run test:e2e
 
