@@ -51,7 +51,7 @@ export async function createTable(
   const table = new Table({
     name: tableName,
     columns: [...getDefaultFields(), ...columns],
-    foreignKeys: foreignKeys,
+    foreignKeys,
   });
   await queryRunner.createTable(table, false, true, true);
 
@@ -60,10 +60,7 @@ export async function createTable(
     // create an index on each foreign key column to improve SQL joins
     await Promise.all(
       foreignKeys.map((fk) => {
-        const foreignKeyName = customNamingStrategy.foreignKeyName(
-          table,
-          fk.columnNames,
-        );
+        const foreignKeyName = customNamingStrategy.foreignKeyName(table, fk.columnNames);
         return queryRunner.createIndex(table, {
           name: `idx_${foreignKeyName}`,
           columnNames: fk.columnNames,
@@ -74,9 +71,6 @@ export async function createTable(
   }
 }
 
-export async function dropTable(
-  queryRunner: QueryRunner,
-  tableName: string,
-): Promise<void> {
+export async function dropTable(queryRunner: QueryRunner, tableName: string): Promise<void> {
   return queryRunner.dropTable(tableName, false, true, true);
 }

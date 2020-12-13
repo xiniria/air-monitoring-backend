@@ -30,6 +30,7 @@ lint:
     - npm install
   script:
     - npm run lint:ci
+    - npm run format:ci
 
 test:
   stage: Test
