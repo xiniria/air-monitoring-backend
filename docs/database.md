@@ -73,3 +73,8 @@ last migration, use `npm run unmigrate`.
 To create a new migration file, use the command `npm run generate-migration migration-name`.
 Your migration name should be descriptive of what is actually accomplished in the migration. Make sure
 that you test both `up()` and `down()` methods before deploying a new migration.
+
+To create a new entity file, use the command `npm run generate-entity entity-name`. All our files start
+with a lowercase letter, so the entity name you give to the command should be lowercase. However, this will
+create a class (inside the generated file) with a lowercase first letter, which you will have to manually modify
+(since all class names should begin with an uppercase letter).
