@@ -53,6 +53,17 @@ describe('Fetch external data script', () => {
     waqiName: 'no2',
   };
 
+  const pollutantAqi: Pollutant = {
+    id: 3,
+    shortName: 'AQI',
+    fullName: 'Air Quality Index',
+    description: 'Air quality index',
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+    waqiName: 'aqi',
+  };
+
   describe('makeApiRequest', () => {
     test('should return the parsed JSON response if there was no error fetching the data', async () => {
       const mockData = {
@@ -259,6 +270,10 @@ Full response: ${JSON.stringify(response)}`),
     mockRepository.create.mockImplementation((instance) => instance);
     mockRepository.save.mockImplementation(() => Promise.resolve(null));
 
+    afterEach(() => {
+      mockRepository.save.mockClear();
+    });
+
     const response: WaqiApiSuccess = {
       status: 'ok',
       data: {
@@ -291,6 +306,7 @@ Full response: ${JSON.stringify(response)}`),
     };
 
     const keyObj = {
+      aqi: pollutantAqi,
       co: pollutantCo,
       no2: pollutantNo2,
     };
@@ -301,8 +317,9 @@ Full response: ${JSON.stringify(response)}`),
         (mockRepository as unknown) as Repository<PollutantData>,
         station,
         keyObj,
+        [],
       );
-      expect(mockRepository.save).toHaveBeenCalledTimes(2);
+      expect(mockRepository.save).toHaveBeenCalledTimes(3);
       expect(mockRepository.save).toHaveBeenCalledWith({
         stationId: station.id,
         pollutantId: pollutantCo.id,
@@ -328,11 +345,68 @@ Full response: ${JSON.stringify(response)}`),
           (mockRepository as unknown) as Repository<PollutantData>,
           station,
           keyObj,
+          [],
         ),
       ).rejects.toThrowError(
         new Error(`Unknown pollutant "fakePollutant" received in WAQI API response.
 Full response: ${JSON.stringify(modifiedResponse)}`),
       );
+    });
+
+    test('should not save the data if it has not been updated since last run', async () => {
+      const consoleInfoCalls = [];
+      const spy = jest.spyOn(global.console, 'info');
+      spy.mockImplementation((data: any) => {
+        consoleInfoCalls.push(data);
+      });
+
+      await insertDataInDb(
+        response,
+        (mockRepository as unknown) as Repository<PollutantData>,
+        station,
+        keyObj,
+        [
+          {
+            stationId: station.id,
+            pollutantId: pollutantCo.id,
+            lastDatetime: '2020-12-05T13:00:00+01:00',
+          },
+        ],
+      );
+      expect(mockRepository.save).toHaveBeenCalledTimes(2);
+      expect(consoleInfoCalls).toEqual([
+        'Data already saved for 1 pollutant in station 1 at time 2020-12-05T13:00:00+01:00',
+      ]);
+
+      spy.mockRestore();
+    });
+
+    test('should not save the AQI if it is a string', async () => {
+      const consoleInfoCalls = [];
+      const spy = jest.spyOn(global.console, 'info');
+      spy.mockImplementation((data: any) => {
+        consoleInfoCalls.push(data);
+      });
+
+      const modifiedResponse: WaqiApiSuccess = {
+        status: 'ok',
+        data: {
+          ...response.data,
+          aqi: '-',
+        },
+      };
+
+      await insertDataInDb(
+        modifiedResponse,
+        (mockRepository as unknown) as Repository<PollutantData>,
+        station,
+        keyObj,
+        [],
+      );
+      expect(mockRepository.save).toHaveBeenCalledTimes(2);
+      expect(consoleInfoCalls).toEqual(['No AQI in API response for station 1.']);
+
+      spy.mockRestore();
     });
   });
 });
