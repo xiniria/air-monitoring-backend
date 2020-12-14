@@ -1,5 +1,6 @@
 INSERT INTO pollutants (full_name, short_name, description, waqi_name)
-VALUES ('Monoxyde de carbone', 'CO', '', 'co'),
+VALUES ('Indice de qualité de l''air', 'AQI', '', 'aqi'),
+       ('Monoxyde de carbone', 'CO', '', 'co'),
        ('Humidité', 'H', '', 'h'),
        ('Dioxyde d''azote', 'NO2', '', 'no2'),
        ('Ozone', 'O3', '', 'o3'),

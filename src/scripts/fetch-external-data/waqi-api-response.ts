@@ -3,7 +3,7 @@ import { WaqiPollutantName } from './constants';
 export interface WaqiApiSuccess {
   status: 'ok';
   data: {
-    aqi: number;
+    aqi: number | string;
     idx: number;
     attributions: {
       url: string;

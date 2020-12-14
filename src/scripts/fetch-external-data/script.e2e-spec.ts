@@ -24,6 +24,7 @@ describe('Fetch external data (E2E)', () => {
   let station2: Station;
   let pollutantCo: Pollutant;
   let pollutantNo2: Pollutant;
+  let pollutantAqi: Pollutant;
 
   let pollutantDataRepository: Repository<PollutantData>;
 
@@ -66,13 +67,27 @@ describe('Fetch external data (E2E)', () => {
       waqiName: 'no2',
     });
 
+    pollutantAqi = pollutantRepository.create({
+      shortName: 'AQI',
+      fullName: 'Air Quality Index',
+      description: 'Air quality index',
+      waqiName: 'aqi',
+    });
+
     [station1, station2] = await stationRepository.save([station1, station2]);
-    [pollutantCo, pollutantNo2] = await pollutantRepository.save([pollutantCo, pollutantNo2]);
+    [pollutantCo, pollutantNo2, pollutantAqi] = await pollutantRepository.save([
+      pollutantCo,
+      pollutantNo2,
+      pollutantAqi,
+    ]);
   });
 
   describe('fetchExternalData', () => {
-    test('should insert data in the database based on the API response', async () => {
-      const responseStation1: WaqiApiSuccess = {
+    let responseStation1: WaqiApiSuccess;
+    let responseStation2: WaqiApiSuccess;
+
+    beforeAll(async () => {
+      responseStation1 = {
         status: 'ok',
         data: {
           aqi: 20,
@@ -103,7 +118,7 @@ describe('Fetch external data (E2E)', () => {
         },
       };
 
-      const responseStation2: WaqiApiSuccess = {
+      responseStation2 = {
         status: 'ok',
         data: {
           aqi: 18,
@@ -140,7 +155,9 @@ describe('Fetch external data (E2E)', () => {
           return createMockResponse(responseStation1);
         } else return createMockResponse(responseStation2);
       });
+    });
 
+    test('should insert data in the database based on the API response', async () => {
       await fetchExternalData();
 
       const pollutantData = await pollutantDataRepository.find({
@@ -178,6 +195,12 @@ describe('Fetch external data (E2E)', () => {
             datetime: '2020-12-05T12:00:00.000Z',
           },
           {
+            stationId: station1.id,
+            pollutantId: pollutantAqi.id,
+            value: 20,
+            datetime: '2020-12-05T12:00:00.000Z',
+          },
+          {
             stationId: station2.id,
             pollutantId: pollutantCo.id,
             value: 0.5,
@@ -189,8 +212,34 @@ describe('Fetch external data (E2E)', () => {
             value: 8.6,
             datetime: '2020-12-05T13:00:00.000Z',
           },
+          {
+            stationId: station2.id,
+            pollutantId: pollutantAqi.id,
+            value: 18,
+            datetime: '2020-12-05T13:00:00.000Z',
+          },
         ].sort(compareFunc) as PartialPollutantData[],
       );
+    });
+
+    test('should not insert the same data twice in the database if timestamps are the same', async () => {
+      const consoleInfoCalls = [];
+      const spy = jest.spyOn(global.console, 'info');
+      spy.mockImplementation((data: any) => {
+        consoleInfoCalls.push(data);
+      });
+
+      await fetchExternalData();
+
+      const pollutantData = await pollutantDataRepository.find({ select: ['id', 'datetime'] });
+      expect(pollutantData.length).toBe(6);
+      expect(consoleInfoCalls).toContain(
+        'Data already saved for 3 pollutants in station 1 at time 2020-12-05T13:00:00+01:00',
+      );
+      expect(consoleInfoCalls).toContain(
+        'Data already saved for 3 pollutants in station 2 at time 2020-12-05T14:00:00+01:00',
+      );
+      spy.mockRestore();
     });
   });
 
