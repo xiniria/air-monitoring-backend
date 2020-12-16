@@ -234,10 +234,10 @@ describe('Fetch external data (E2E)', () => {
       const pollutantData = await pollutantDataRepository.find({ select: ['id', 'datetime'] });
       expect(pollutantData.length).toBe(6);
       expect(consoleInfoCalls).toContain(
-        'Data already saved for 3 pollutants in station 1 at time 2020-12-05T13:00:00+01:00',
+        'Data already saved for station 1 at time 2020-12-05T13:00:00+01:00',
       );
       expect(consoleInfoCalls).toContain(
-        'Data already saved for 3 pollutants in station 2 at time 2020-12-05T14:00:00+01:00',
+        'Data already saved for station 2 at time 2020-12-05T14:00:00+01:00',
       );
       spy.mockRestore();
     });
