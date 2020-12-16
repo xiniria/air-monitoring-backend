@@ -368,14 +368,55 @@ Full response: ${JSON.stringify(modifiedResponse)}`),
         [
           {
             stationId: station.id,
-            pollutantId: pollutantCo.id,
-            lastDatetime: '2020-12-05T13:00:00+01:00',
+            datetime: '2020-12-05T13:00:00+01:00',
           },
         ],
       );
-      expect(mockRepository.save).toHaveBeenCalledTimes(2);
+      expect(mockRepository.save).toHaveBeenCalledTimes(0);
       expect(consoleInfoCalls).toEqual([
-        'Data already saved for 1 pollutant in station 1 at time 2020-12-05T13:00:00+01:00',
+        'Data already saved for station 1 at time 2020-12-05T13:00:00+01:00',
+      ]);
+
+      spy.mockRestore();
+    });
+
+    test('should not save the data if it is a previous data point', async () => {
+      const modifiedResponse: WaqiApiSuccess = {
+        status: 'ok',
+        data: {
+          ...response.data,
+          time: {
+            ...response.data.time,
+            iso: '2020-12-05T11:00:00+01:00',
+          },
+        },
+      };
+
+      const consoleInfoCalls = [];
+      const spy = jest.spyOn(global.console, 'info');
+      spy.mockImplementation((data: any) => {
+        consoleInfoCalls.push(data);
+      });
+
+      await insertDataInDb(
+        modifiedResponse,
+        (mockRepository as unknown) as Repository<PollutantData>,
+        station,
+        keyObj,
+        [
+          {
+            stationId: station.id,
+            datetime: '2020-12-05T13:00:00+01:00',
+          },
+          {
+            stationId: station.id,
+            datetime: '2020-12-05T11:00:00+01:00',
+          },
+        ],
+      );
+      expect(mockRepository.save).toHaveBeenCalledTimes(0);
+      expect(consoleInfoCalls).toEqual([
+        'Data already saved for station 1 at time 2020-12-05T11:00:00+01:00',
       ]);
 
       spy.mockRestore();

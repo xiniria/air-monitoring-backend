@@ -12,8 +12,7 @@ const WAQI_API_URL = 'https://api.waqi.info/feed';
 
 interface PollutantDataPoint {
   stationId: number;
-  pollutantId: number;
-  lastDatetime: string;
+  datetime: string;
 }
 
 export async function makeApiRequest(station: Station): Promise<WaqiApiSuccess> {
@@ -61,7 +60,14 @@ export async function insertDataInDb(
   const isoTime = response.data.time.iso;
   const isoTimeDayJs = dayjs(isoTime);
   let insertedDataPoints = 0;
-  let alreadyKnownDataPoints = 0;
+
+  const existingDataPoints = pollutantDataPoints.filter(
+    (dataPoint) => dataPoint.stationId === station.id && isoTimeDayJs.isSame(dataPoint.datetime),
+  );
+  if (existingDataPoints.length > 0) {
+    console.info(`Data already saved for station ${station.id} at time ${isoTime}`);
+    return 0;
+  }
 
   for (const [pollutantName, valueObject] of Object.entries({
     ...response.data.iaqi,
@@ -78,17 +84,6 @@ export async function insertDataInDb(
           `Full response: ${JSON.stringify(response)}`,
       );
 
-    const existingDataPoints = pollutantDataPoints.filter(
-      (dataPoint) =>
-        dataPoint.stationId === station.id &&
-        dataPoint.pollutantId === pollutant.id &&
-        isoTimeDayJs.isSame(dataPoint.lastDatetime),
-    );
-    if (existingDataPoints.length > 0) {
-      alreadyKnownDataPoints++;
-      continue;
-    }
-
     const pollutantData = pollutantDataRepository.create({
       stationId: station.id,
       pollutantId: pollutant.id,
@@ -100,13 +95,6 @@ export async function insertDataInDb(
     insertedDataPoints++;
   }
 
-  if (alreadyKnownDataPoints > 0) {
-    console.info(
-      `Data already saved for ${alreadyKnownDataPoints} pollutant${
-        alreadyKnownDataPoints > 1 ? 's' : ''
-      } in station ${station.id} at time ${isoTime}`,
-    );
-  }
   return insertedDataPoints;
 }
 
@@ -128,13 +116,19 @@ export async function fetchExternalData() {
     waqiPollutantToDbPollutant[pollutant.waqiName] = pollutant;
   });
 
+  // fetch last five data points' datetimes for each station
   const lastDataPoints = (await connection.query(`
-SELECT station_id AS "stationId",
-       pollutant_id AS "pollutantId",
-       to_char(max(datetime), 'YYYY-MM-DD"T"HH24:MI:SSTZH:TZM') AS "lastDatetime"
-FROM pollutant_data
-WHERE deleted_at IS NULL
-GROUP BY station_id, pollutant_id;
+SELECT station_id AS "stationId", datetime
+FROM (
+    SELECT DISTINCT station_id,
+                    datetime,
+                    RANK() OVER (
+                        PARTITION BY station_id, pollutant_id
+                        ORDER BY datetime DESC
+                    ) AS rank
+    FROM pollutant_data
+) AS rpd
+WHERE rpd.rank <= 5;
   `)) as PollutantDataPoint[];
   console.info('Data fetched');
 
