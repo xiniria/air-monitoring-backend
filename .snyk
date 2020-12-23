@@ -1,0 +1,13 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.14.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-Y18N-1021887:
+    - typeorm > cli-highlight > yargs > y18n:
+        reason: Waiting for fix in cli-highlight
+        expires: '2021-01-20T15:36:02.121Z'
+  SNYK-JS-AXIOS-1038255:
+    - '@nestjs/common > axios':
+        reason: 'Master already fixed, waiting for deployment'
+        expires: '2021-01-20T15:36:02.121Z'
+patch: {}
