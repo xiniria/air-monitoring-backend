@@ -162,14 +162,26 @@ describe('Fetch external data script - custom validators', () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     // noinspection JSConstantReassignment
-    constants.WAQI_POLLUTANT_NAMES = ['o3', 'no2'];
+    constants.WAQI_POLLUTANT_NAMES = ['o3', 't'];
 
     test('should pass for a correct value', () => {
       expect(
         constraint.validate(
           {
             o3: { v: 12.5 },
-            no2: { v: 4.7 },
+            t: { v: 4.7 },
+          },
+          {} as ValidationArguments,
+        ),
+      ).toBe(true);
+    });
+
+    test('should pass even if the temperature is negative', () => {
+      expect(
+        constraint.validate(
+          {
+            o3: { v: 12.5 },
+            t: { v: -4.7 },
           },
           {} as ValidationArguments,
         ),
@@ -185,49 +197,49 @@ describe('Fetch external data script - custom validators', () => {
         message: 'a key is not properly named',
         value: {
           o2: { v: 12.5 },
-          no2: { v: 4.7 },
+          t: { v: 4.7 },
         },
       },
       {
         message: 'a pollutant value is not an object',
         value: {
           o2: { v: 12.5 },
-          no2: 'string',
+          t: 'string',
         },
       },
       {
         message: 'a pollutant value has more than one key',
         value: {
           o2: { v: 12.5 },
-          no2: { v: 4.7, v2: 5.3 },
+          t: { v: 4.7, v2: 5.3 },
         },
       },
       {
         message: 'a pollutant value has no key',
         value: {
           o2: { v: 12.5 },
-          no2: {},
+          t: {},
         },
       },
       {
         message: 'a pollutant value key is not named v',
         value: {
           o2: { v: 12.5 },
-          no2: { w: 4.7 },
+          t: { w: 4.7 },
         },
       },
       {
         message: 'a pollutant concentration is not a number',
         value: {
           o2: { v: 12.5 },
-          no2: { v: 'string' },
+          t: { v: 'string' },
         },
       },
       {
         message: 'a pollutant concentration is negative',
         value: {
-          o2: { v: 12.5 },
-          no2: { v: -4.7 },
+          o2: { v: -12.5 },
+          t: { v: 4.7 },
         },
       },
     ];
