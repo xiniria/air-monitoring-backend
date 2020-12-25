@@ -88,9 +88,9 @@ export class IsWaqiIaqiConstraint implements ValidatorConstraintInterface {
       if (!isObject(value[key])) return false;
       const valueKeys = Object.keys(value[key]);
       if (valueKeys.length !== 1 || valueKeys[0] !== 'v') return false;
-      if (!isNumber(value[key].v) || !min(value[key].v, 0)) {
-        return false;
-      }
+      if (!isNumber(value[key].v)) return false;
+      // negative values only allowed for temperatures
+      if (key !== 't' && !min(value[key].v, 0)) return false;
     }
     return true;
   }
