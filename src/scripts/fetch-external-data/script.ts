@@ -158,6 +158,7 @@ WHERE rpd.rank <= 5;
     );
   } catch (err: any) {
     console.error(err);
+    process.exitCode = 1;
   }
 
   console.info(`Script over, closing connection with the database...`);
