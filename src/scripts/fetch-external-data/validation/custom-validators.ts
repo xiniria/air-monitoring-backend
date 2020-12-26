@@ -90,7 +90,7 @@ export class IsWaqiIaqiConstraint implements ValidatorConstraintInterface {
       if (valueKeys.length !== 1 || valueKeys[0] !== 'v') return false;
       if (!isNumber(value[key].v)) return false;
       // negative values only allowed for temperatures
-      if (key !== 't' && !min(value[key].v, 0)) return false;
+      if (!['t', 'dew'].includes(key) && !min(value[key].v, 0)) return false;
     }
     return true;
   }
