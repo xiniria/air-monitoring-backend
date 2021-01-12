@@ -34,6 +34,7 @@
     "test:cov": "IS_TS_NODE=\"true\" jest --coverage",
     "test:debug": "IS_TS_NODE=\"true\" node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "IS_TS_NODE=\"true\" jest --config ./test/jest-e2e.json",
+    "test:e2e:ci": "npm run test:e2e -- --runInBand",
     "typeorm": "ts-node ./node_modules/typeorm/cli.js",
     "unmigrate": "npm run typeorm migration:revert"
   },

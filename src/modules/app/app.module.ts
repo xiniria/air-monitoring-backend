@@ -1,12 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import connectionOptions from '../../../ormconfig';
+import { PollutantDataModule } from '../pollutant-data/pollutant-data.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(connectionOptions)],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [TypeOrmModule.forRoot(connectionOptions), PollutantDataModule],
 })
 export class AppModule {}

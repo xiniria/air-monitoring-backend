@@ -157,7 +157,7 @@ describe('Fetch external data (E2E)', () => {
       });
     });
 
-    test('should insert data in the database based on the API response', async () => {
+    it('should insert data in the database based on the API response', async () => {
       await fetchExternalData();
 
       const pollutantData = await pollutantDataRepository.find({
@@ -222,7 +222,7 @@ describe('Fetch external data (E2E)', () => {
       );
     });
 
-    test('should not insert the same data twice in the database if timestamps are the same', async () => {
+    it('should not insert the same data twice in the database if timestamps are the same', async () => {
       const consoleInfoCalls = [];
       const spy = jest.spyOn(global.console, 'info');
       spy.mockImplementation((data: any) => {
