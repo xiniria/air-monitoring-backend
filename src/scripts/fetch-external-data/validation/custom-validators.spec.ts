@@ -10,7 +10,7 @@ describe('Fetch external data script - custom validators', () => {
   describe('IsWaqiDailyForecast', () => {
     const constraint = new IsWaqiDailyForecastConstraint();
 
-    test('should pass for a correct value', () => {
+    it('should pass for a correct value', () => {
       expect(
         constraint.validate(
           {
@@ -119,7 +119,7 @@ describe('Fetch external data script - custom validators', () => {
     ];
 
     failures.forEach(({ message, value }) => {
-      test(`should fail if ${message}`, () => {
+      it(`should fail if ${message}`, () => {
         expect(constraint.validate(value, {} as ValidationArguments)).toBe(false);
       });
     });
@@ -128,7 +128,7 @@ describe('Fetch external data script - custom validators', () => {
   describe('IsWaqiSTimeConstraint', () => {
     const constraint = new IsWaqiSTimeConstraint();
 
-    test('should pass for a correct value', () => {
+    it('should pass for a correct value', () => {
       expect(constraint.validate('2020-12-05 12:13:14', {} as ValidationArguments)).toBe(true);
     });
 
@@ -148,7 +148,7 @@ describe('Fetch external data script - custom validators', () => {
     ];
 
     failures.forEach(({ message, value }) => {
-      test(`should fail if ${message}`, () => {
+      it(`should fail if ${message}`, () => {
         expect(constraint.validate(value, {} as ValidationArguments)).toBe(false);
       });
     });
@@ -164,7 +164,7 @@ describe('Fetch external data script - custom validators', () => {
     // noinspection JSConstantReassignment
     constants.WAQI_POLLUTANT_NAMES = ['o3', 't'];
 
-    test('should pass for a correct value', () => {
+    it('should pass for a correct value', () => {
       expect(
         constraint.validate(
           {
@@ -176,7 +176,7 @@ describe('Fetch external data script - custom validators', () => {
       ).toBe(true);
     });
 
-    test('should pass even if the temperature is negative', () => {
+    it('should pass even if the temperature is negative', () => {
       expect(
         constraint.validate(
           {
@@ -245,7 +245,7 @@ describe('Fetch external data script - custom validators', () => {
     ];
 
     failures.forEach(({ message, value }) => {
-      test(`should fail if ${message}`, () => {
+      it(`should fail if ${message}`, () => {
         expect(constraint.validate(value, {} as ValidationArguments)).toBe(false);
       });
     });

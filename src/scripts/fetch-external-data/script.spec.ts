@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import { Response } from 'node-fetch';
 import { Repository } from 'typeorm';
 import { Pollutant, PollutantData, Station } from '../../entities';
-import { mockRepositoryFactory } from '../../util/mock-repository';
+import { mockRepositoryFactory } from '../../util/mock-database';
 import { insertDataInDb, makeApiRequest, validateApiResponse } from './script';
 import { WaqiApiSuccess } from './waqi-api-response';
 
@@ -65,7 +65,7 @@ describe('Fetch external data script', () => {
   };
 
   describe('makeApiRequest', () => {
-    test('should return the parsed JSON response if there was no error fetching the data', async () => {
+    it('should return the parsed JSON response if there was no error fetching the data', async () => {
       const mockData = {
         status: 'ok',
         data: {},
@@ -77,7 +77,7 @@ describe('Fetch external data script', () => {
       expect(data).toBe(mockData);
     });
 
-    test('should throw an error if the response status is not "ok"', async () => {
+    it('should throw an error if the response status is not "ok"', async () => {
       const mockData = {
         status: 'error',
         message: 'Mock error',
@@ -89,7 +89,7 @@ describe('Fetch external data script', () => {
       );
     });
 
-    test('should throw an error if node-fetch failed', async () => {
+    it('should throw an error if node-fetch failed', async () => {
       const error = new Error('Mock error');
       mockedFetch.mockImplementation(() => {
         throw error;
@@ -102,7 +102,7 @@ describe('Fetch external data script', () => {
   });
 
   describe('validateApiResponse', () => {
-    test('should do nothing if the validation passes', async () => {
+    it('should do nothing if the validation passes', async () => {
       const response: WaqiApiSuccess = {
         status: 'ok',
         data: {
@@ -175,7 +175,7 @@ describe('Fetch external data script', () => {
       await expect(validateApiResponse(response, station)).resolves.not.toThrow();
     });
 
-    test('should throw if validation fails', async () => {
+    it('should throw if validation fails', async () => {
       const response: WaqiApiSuccess = {
         status: 'ok',
         data: {
@@ -311,7 +311,7 @@ Full response: ${JSON.stringify(response)}`),
       no2: pollutantNo2,
     };
 
-    test('should save data correctly if the pollutant is found', async () => {
+    it('should save data correctly if the pollutant is found', async () => {
       await insertDataInDb(
         response,
         (mockRepository as unknown) as Repository<PollutantData>,
@@ -328,7 +328,7 @@ Full response: ${JSON.stringify(response)}`),
       });
     });
 
-    test('should throw an error if an unknown pollutant is found', async () => {
+    it('should throw an error if an unknown pollutant is found', async () => {
       const modifiedResponse: WaqiApiSuccess = {
         status: 'ok',
         data: {
@@ -353,7 +353,7 @@ Full response: ${JSON.stringify(modifiedResponse)}`),
       );
     });
 
-    test('should not save the data if it has not been updated since last run', async () => {
+    it('should not save the data if it has not been updated since last run', async () => {
       const consoleInfoCalls = [];
       const spy = jest.spyOn(global.console, 'info');
       spy.mockImplementation((data: any) => {
@@ -380,7 +380,7 @@ Full response: ${JSON.stringify(modifiedResponse)}`),
       spy.mockRestore();
     });
 
-    test('should not save the data if it is a previous data point', async () => {
+    it('should not save the data if it is a previous data point', async () => {
       const modifiedResponse: WaqiApiSuccess = {
         status: 'ok',
         data: {
@@ -422,7 +422,7 @@ Full response: ${JSON.stringify(modifiedResponse)}`),
       spy.mockRestore();
     });
 
-    test('should not save the AQI if it is a string', async () => {
+    it('should not save the AQI if it is a string', async () => {
       const consoleInfoCalls = [];
       const spy = jest.spyOn(global.console, 'info');
       spy.mockImplementation((data: any) => {

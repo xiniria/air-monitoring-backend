@@ -54,7 +54,7 @@ test_e2e:
   before_script:
     - npm run migrate
   script:
-    - npm run test:e2e
+    - npm run test:e2e:ci
 
 build:
   except:
