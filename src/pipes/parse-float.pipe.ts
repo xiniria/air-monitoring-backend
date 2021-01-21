@@ -21,6 +21,7 @@ export class ParseFloatPipe implements PipeTransform<string> {
     options = options || {};
     const { exceptionFactory, errorHttpStatusCode = HttpStatus.BAD_REQUEST } = options;
 
+    // istanbul ignore next
     this.exceptionFactory =
       exceptionFactory || ((error) => new HttpErrorByCode[errorHttpStatusCode](error));
   }

@@ -34,20 +34,20 @@ Since our project is written in TypeScript, that means we have to install `ts-no
 to run the CLI executable file of TypeORM. We also have to install TypeScript globally as it is a peer
 dependency of `ts-node`:
 
-```bash
+```shell
 $ npm install --global ts-node typescript
 ```
 
 Once this is done, we can use this command instead of the `typeorm` CLI command:
 
-```bash
+```shell
 $ node --require ts-node/register ./node_modules/typeorm/cli.js
 ```
 
 As this is not very convenient to type, we added the npm script `typeorm` instead, so you basically just
 need this (there is a special syntax for dash options such as `-n`):
 
-```bash
+```shell
 $ npm run typeorm <typeorm CLI command> [-- [dash option]]
 $ npm run typeorm migration:create -- -n migration-name
 ```
@@ -60,21 +60,19 @@ We use migrations to manage the evolution of the DB schema. Migrations are files
 a `down()` methods that allow a user to run or revert the migration on the database. The body of each
 of these functions is a set of SQL instructions to run on the database. Here, we use the built-in migration
 features of TypeORM (which you can read about [here](https://typeorm.io/#/migrations)) that give us access
-to the `QueryRunner` methods, so we don't have to write plain SQL. Because we use the TypeORM CLI with
-TypeScript files in development (that we transpile using ts-node), but we use it with JavaScript files in
-production (when the files have already been built in `./dist/`), we have to tell TypeORM which one it is
-(so that it looks for TypeScript files instead of JavaScript ones in development, for example). We do that
-using the `NODE_ENV` environment variable set to `migration`. To make it easier and ensure it works the same
-everywhere, we created npm scripts for all TypeORM CLI migration commands.
+to the `QueryRunner` methods, so we don't have to write plain SQL. To make it easier and ensure it works the
+same everywhere, we created npm scripts for all TypeORM CLI migration commands.
 
-To run migrations on your database, use the `typeorm` CLI command with  `npm run migrate`; to revert the
+To run migrations on your database, use the `typeorm` CLI command with `npm run migrate`; to revert the
 last migration, use `npm run unmigrate`.
 
 To create a new migration file, use the command `npm run generate-migration migration-name`.
 Your migration name should be descriptive of what is actually accomplished in the migration. Make sure
-that you test both `up()` and `down()` methods before deploying a new migration.
+that you test both `up()` and `down()` methods before deploying a new migration. Also try to use the utility
+functions that are already created in `mig/lib.ts`: you can draw inspiration from previous migrations. If
+there is no utility function for what you are trying to do, it might be a good idea to create one.
 
 To create a new entity file, use the command `npm run generate-entity entity-name`. All our files start
 with a lowercase letter, so the entity name you give to the command should be lowercase. However, this will
-create a class (inside the generated file) with a lowercase first letter, which you will have to manually modify
-(since all class names should begin with an uppercase letter).
+create a class (inside the generated file) with a lowercase first letter, which you will have to manually
+modify (since all class names should begin with an uppercase letter).

@@ -188,7 +188,7 @@ describe('Fetch external data script - custom validators', () => {
       ).toBe(true);
     });
 
-    const failures: { message: string; value: any }[] = [
+    const failures: Array<{ message: string; value: any }> = [
       {
         message: 'the value is not an object',
         value: 'string',
@@ -203,42 +203,42 @@ describe('Fetch external data script - custom validators', () => {
       {
         message: 'a pollutant value is not an object',
         value: {
-          o2: { v: 12.5 },
+          o3: { v: 12.5 },
           t: 'string',
         },
       },
       {
         message: 'a pollutant value has more than one key',
         value: {
-          o2: { v: 12.5 },
+          o3: { v: 12.5 },
           t: { v: 4.7, v2: 5.3 },
         },
       },
       {
         message: 'a pollutant value has no key',
         value: {
-          o2: { v: 12.5 },
+          o3: { v: 12.5 },
           t: {},
         },
       },
       {
         message: 'a pollutant value key is not named v',
         value: {
-          o2: { v: 12.5 },
+          o3: { v: 12.5 },
           t: { w: 4.7 },
         },
       },
       {
         message: 'a pollutant concentration is not a number',
         value: {
-          o2: { v: 12.5 },
+          o3: { v: 12.5 },
           t: { v: 'string' },
         },
       },
       {
         message: 'a pollutant concentration is negative',
         value: {
-          o2: { v: -12.5 },
+          o3: { v: -12.5 },
           t: { v: 4.7 },
         },
       },

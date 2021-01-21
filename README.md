@@ -52,13 +52,5 @@ $ npm run start:prod
 
 ## Test
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
+You can run all tests with `npm run test`. For a more thorough explanation, head to
+[`docs/tests.md`](./docs/tests.md).
