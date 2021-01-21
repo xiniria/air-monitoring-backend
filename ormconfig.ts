@@ -17,12 +17,8 @@ export default {
   username: process.env.PG_USER || 'postgres',
   password: process.env.PG_PASSWORD || '',
   database: process.env.PG_DATABASE || 'air_monitoring',
-  entities: [
-    join(__dirname, 'src/entities', process.env.IS_TS_NODE ? '*.ts' : '*.js'),
-  ],
-  migrations: [
-    join(__dirname, 'mig/migrations', process.env.IS_TS_NODE ? '*.ts' : '*.js'),
-  ],
+  entities: [join(__dirname, 'src/entities', process.env.IS_TS_NODE ? '*.ts' : '*.js')],
+  migrations: [join(__dirname, 'mig/migrations', process.env.IS_TS_NODE ? '*.ts' : '*.js')],
   cli: {
     entitiesDir: 'src/entities',
     migrationsDir: 'mig/migrations',

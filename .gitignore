@@ -18,6 +18,8 @@ lerna-debug.log*
 
 # Tests
 /cov
+/cov-e2e
+/cov-unit
 /.nyc_output
 
 # IDEs and editors

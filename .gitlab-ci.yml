@@ -4,6 +4,7 @@ stages:
   - Prepare
   - Lint
   - Test
+  - Merge coverage
   - Build
   - Security
 
@@ -23,6 +24,7 @@ prepare:
     policy: pull-push
   script:
     - npm install
+  dependencies: []
 
 lint:
   except:
@@ -33,13 +35,19 @@ lint:
   script:
     - npm run lint:ci
     - npm run format:ci
+  dependencies: []
 
-test:
+test_unit:
   except:
     - schedules
   stage: Test
   script:
-    - npm run test
+    - COV_OUTPUT=false npm run test:unit:cov
+  artifacts:
+    paths:
+      - cov-unit/
+    expire_in: 1 day
+  dependencies: []
 
 test_e2e:
   except:
@@ -54,7 +62,23 @@ test_e2e:
   before_script:
     - npm run migrate
   script:
-    - npm run test:e2e:ci
+    - COV_OUTPUT=false npm run test:e2e:ci
+  artifacts:
+    paths:
+      - cov-e2e/
+    expire_in: 1 day
+  dependencies: []
+
+merge_coverage:
+  stage: Merge coverage
+  script:
+    - npm run merge-coverage
+  artifacts:
+    reports:
+      cobertura: cov/cobertura-coverage.xml
+  dependencies:
+    - test_unit
+    - test_e2e
 
 build:
   except:
@@ -62,6 +86,7 @@ build:
   stage: Build
   script:
     - npm run build
+  dependencies: []
 
 audit:
   except:
@@ -69,6 +94,7 @@ audit:
   stage: Security
   script:
     - npm audit
+  dependencies: []
 
 lockfile_lint:
   except:
@@ -76,6 +102,7 @@ lockfile_lint:
   stage: Security
   script:
     - npm run lockfile-lint
+  dependencies: []
 
 snyk_test:
   only:

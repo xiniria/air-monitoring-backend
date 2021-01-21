@@ -156,7 +156,7 @@ WHERE rpd.rank <= 5;
     console.info(
       `Inserted ${insertedDataPoints} new data points in DB for ${stations.length} stations and ${pollutants.length} pollutants.`,
     );
-  } catch (err: any) {
+  } catch (err: any) /* istanbul ignore next */ {
     console.error(err);
     process.exitCode = 1;
   }
