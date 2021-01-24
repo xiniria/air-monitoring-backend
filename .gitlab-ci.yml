@@ -70,6 +70,8 @@ test_e2e:
   dependencies: []
 
 merge_coverage:
+  except:
+    - schedules
   stage: Merge coverage
   script:
     - npm run merge-coverage
