@@ -82,7 +82,7 @@
     "lockfile-lint": "4.3.7",
     "mkdirp": "1.0.4",
     "prettier": "2.2.1",
-    "snyk": "1.439.0",
+    "snyk": "1.439.1",
     "supertest": "6.1.2",
     "ts-jest": "26.4.4",
     "ts-loader": "8.0.14",
