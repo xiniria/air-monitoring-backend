@@ -62,7 +62,7 @@ test_e2e:
   before_script:
     - npm run migrate
   script:
-    - COV_OUTPUT=false npm run test:e2e:ci
+    - COV_OUTPUT=false npm run test:e2e:cov
   artifacts:
     paths:
       - cov-e2e/
