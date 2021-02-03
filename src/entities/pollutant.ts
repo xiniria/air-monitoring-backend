@@ -14,4 +14,7 @@ export class Pollutant extends Table {
 
   @Column({ name: 'waqi_name' })
   waqiName: string;
+
+  @Column({ name: 'is_pollutant', default: true })
+  isPollutant: boolean;
 }

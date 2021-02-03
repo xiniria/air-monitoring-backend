@@ -41,7 +41,7 @@ describe('PollutantDataModule (E2E)', () => {
       waqiName: 'no2',
     });
 
-    await pollutantRepository.save([pollutantCo, pollutantNo2]);
+    [pollutantCo, pollutantNo2] = await pollutantRepository.save([pollutantCo, pollutantNo2]);
   });
 
   it('should return a correct response on route /pollutants/ (GET)', (done) => {

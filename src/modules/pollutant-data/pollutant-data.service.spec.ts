@@ -57,6 +57,7 @@ describe('PollutantDataService', () => {
     createdAt: now,
     updatedAt: now,
     deletedAt: null,
+    isPollutant: true,
   };
   const pollutantData: PollutantData = {
     id: 1,
