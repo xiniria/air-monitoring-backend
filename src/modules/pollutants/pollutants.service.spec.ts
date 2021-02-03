@@ -34,6 +34,7 @@ describe('PollutantsService', () => {
     createdAt: now,
     updatedAt: now,
     deletedAt: null,
+    isPollutant: true,
   };
 
   const pollutantNo2: Pollutant = {
@@ -45,6 +46,7 @@ describe('PollutantsService', () => {
     createdAt: now,
     updatedAt: now,
     deletedAt: null,
+    isPollutant: true,
   };
 
   describe('getAllPollutants', () => {

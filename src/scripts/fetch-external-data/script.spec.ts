@@ -40,6 +40,7 @@ describe('Fetch external data script', () => {
     updatedAt: now,
     deletedAt: null,
     waqiName: 'co',
+    isPollutant: true,
   };
 
   const pollutantNo2: Pollutant = {
@@ -51,6 +52,7 @@ describe('Fetch external data script', () => {
     updatedAt: now,
     deletedAt: null,
     waqiName: 'no2',
+    isPollutant: true,
   };
 
   const pollutantAqi: Pollutant = {
@@ -62,6 +64,7 @@ describe('Fetch external data script', () => {
     updatedAt: now,
     deletedAt: null,
     waqiName: 'aqi',
+    isPollutant: true,
   };
 
   describe('makeApiRequest', () => {
