@@ -7,6 +7,7 @@ stages:
   - Merge coverage
   - Build
   - Security
+  - Deploy
 
 cache: &global_cache
   key:
@@ -88,6 +89,9 @@ build:
   stage: Build
   script:
     - npm run build
+  artifacts:
+    paths:
+      - dist/
   dependencies: []
 
 audit:
@@ -129,3 +133,21 @@ snyk_monitor:
     - npm run snyk:auth "$SNYK_TOKEN"
   script:
     - npm run snyk:monitor
+
+deploy:
+  only:
+    - tags
+  stage: Deploy
+  before_script:
+    - 'which ssh-agent || (apt-get update -y && apt-get install openssh-client -y)'
+    - eval $(ssh-agent -s)
+    - echo "$SERVER_SSH_PRIVATE_KEY" | tr -d "\r" | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan "$SERVER_URL" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - scp -r dist package.json package-lock.json "$SERVER_USER"@"$SERVER_URL":/home/$SERVER_USER/air-monitoring-backend
+    - ssh "$SERVER_USER"@"$SERVER_URL" "/home/$SERVER_USER/air-monitoring-backend/redeploy.sh"
+  dependencies:
+    - build
