@@ -17,4 +17,7 @@ export class Pollutant extends Table {
 
   @Column({ name: 'is_pollutant', default: true })
   isPollutant: boolean;
+
+  @Column({ default: '' })
+  unit: string;
 }

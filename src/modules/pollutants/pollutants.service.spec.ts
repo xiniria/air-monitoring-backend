@@ -35,6 +35,7 @@ describe('PollutantsService', () => {
     updatedAt: now,
     deletedAt: null,
     isPollutant: true,
+    unit: 'µg/m³',
   };
 
   const pollutantNo2: Pollutant = {
@@ -47,6 +48,7 @@ describe('PollutantsService', () => {
     updatedAt: now,
     deletedAt: null,
     isPollutant: true,
+    unit: 'µg/m³',
   };
 
   describe('getAllPollutants', () => {

@@ -58,6 +58,7 @@ describe('PollutantDataService', () => {
     updatedAt: now,
     deletedAt: null,
     isPollutant: true,
+    unit: 'µg/m³',
   };
   const pollutantData: PollutantData = {
     id: 1,
