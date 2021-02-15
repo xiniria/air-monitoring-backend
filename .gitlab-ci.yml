@@ -25,7 +25,6 @@ prepare:
     policy: pull-push
   before_script:
     - node --version
-    - npm install --global npm@latest
     - npm --version
   script:
     - npm install
