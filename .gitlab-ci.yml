@@ -144,7 +144,7 @@ deploy:
   before_script:
     - 'which ssh-agent || (apt-get update -y && apt-get install openssh-client -y)'
     - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SERVER_SSH_PRIVATE_KEY")
+    - ssh-add <(cat "$SERVER_SSH_PRIVATE_KEY")
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - ssh-keyscan "$SERVER_URL" >> ~/.ssh/known_hosts
