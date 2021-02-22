@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner, TableColumn } from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddColumnIsPollutantInTablePollutants1611846614778 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
