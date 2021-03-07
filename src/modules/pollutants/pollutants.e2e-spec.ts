@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { Connection, getConnection } from 'typeorm';
 import { truncateTables } from '../../util/truncate-tables';
+import { stripClassArr } from '../../util/strip-class';
 import { Pollutant } from '../../entities';
 import { AppModule } from '../app/app.module';
 import { PollutantModule } from './pollutants.module';
@@ -48,7 +49,7 @@ describe('PollutantDataModule (E2E)', () => {
     return request(app.getHttpServer())
       .get('/pollutants')
       .expect(200)
-      .expect([pollutantCo, pollutantNo2].map((obj) => ({ ...obj }))) // strip the objects of their class
+      .expect(stripClassArr([pollutantCo, pollutantNo2]))
       .end(done);
   });
 

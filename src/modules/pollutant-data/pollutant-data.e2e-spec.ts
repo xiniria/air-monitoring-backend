@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { Connection, getConnection } from 'typeorm';
+import { Connection, getConnection, Repository } from 'typeorm';
 import * as dayjs from 'dayjs';
 import { truncateTables } from '../../util/truncate-tables';
+import { stripClassArr } from '../../util/strip-class';
 import { Pollutant, PollutantData, Station } from '../../entities';
 import { AppModule } from '../app/app.module';
 import { PollutantDataModule } from './pollutant-data.module';
@@ -14,6 +15,9 @@ describe('PollutantDataModule (E2E)', () => {
 
   let pollutantDataCoNew: PollutantData;
   let pollutantDataNo2New: PollutantData;
+  let pollutantDataAqiOld: PollutantData;
+  let pollutantDataAqiNew: PollutantData;
+  let pollutantDataRepository: Repository<PollutantData>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -28,7 +32,7 @@ describe('PollutantDataModule (E2E)', () => {
 
     const stationRepository = connection.getRepository(Station);
     const pollutantRepository = connection.getRepository(Pollutant);
-    const pollutantDataRepository = connection.getRepository(PollutantData);
+    pollutantDataRepository = connection.getRepository(PollutantData);
 
     const station1 = stationRepository.create({
       name: 'Paris',
@@ -58,8 +62,15 @@ describe('PollutantDataModule (E2E)', () => {
       waqiName: 'no2',
     });
 
+    const pollutantAqi = pollutantRepository.create({
+      shortName: 'AQI',
+      fullName: 'Air Quality Index',
+      description: '',
+      waqiName: 'aqi',
+    });
+
     await stationRepository.save([station1, station2]);
-    await pollutantRepository.save([pollutantCo, pollutantNo2]);
+    await pollutantRepository.save([pollutantCo, pollutantNo2, pollutantAqi]);
 
     const oldTime = dayjs('2020-01-06T08:00:00Z').toISOString();
     const newTime = dayjs('2020-01-06T12:00:00Z').toISOString();
@@ -92,9 +103,30 @@ describe('PollutantDataModule (E2E)', () => {
       value: 2.3,
     });
 
-    [pollutantDataCoNew, pollutantDataNo2New] = await pollutantDataRepository.save([
+    pollutantDataAqiOld = pollutantDataRepository.create({
+      pollutantId: pollutantAqi.id,
+      stationId: station1.id,
+      datetime: oldTime,
+      value: 21,
+    });
+
+    pollutantDataAqiNew = pollutantDataRepository.create({
+      pollutantId: pollutantAqi.id,
+      stationId: station1.id,
+      datetime: newTime,
+      value: 46,
+    });
+
+    [
       pollutantDataCoNew,
       pollutantDataNo2New,
+      pollutantDataAqiOld,
+      pollutantDataAqiNew,
+    ] = await pollutantDataRepository.save([
+      pollutantDataCoNew,
+      pollutantDataNo2New,
+      pollutantDataAqiOld,
+      pollutantDataAqiNew,
       pollutantDataCoOld,
       pollutantDataNo2Old,
     ]);
@@ -104,9 +136,20 @@ describe('PollutantDataModule (E2E)', () => {
     return request(app.getHttpServer())
       .get('/pollutant-data/48.8471383/2.4294888')
       .expect(200)
-      .expect([pollutantDataCoNew, pollutantDataNo2New].map((obj) => ({ ...obj }))) // strip the objects of their class
+      .expect(stripClassArr([pollutantDataCoNew, pollutantDataNo2New, pollutantDataAqiNew]))
       .end(done);
   });
+
+  it('should get an older value for AQI if there is no recent one', async () => {
+    await pollutantDataRepository.softDelete(pollutantDataAqiNew.id);
+
+    await request(app.getHttpServer())
+      .get('/pollutant-data/48.8471383/2.4294888')
+      .expect(200)
+      .expect(stripClassArr([pollutantDataCoNew, pollutantDataNo2New, pollutantDataAqiOld]));
+
+    return pollutantDataRepository.restore(pollutantDataAqiNew.id);
+  }, 10000);
 
   afterAll(async () => {
     await connection.close();

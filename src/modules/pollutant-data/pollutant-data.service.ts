@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
-import { PollutantData, Station } from '../../entities';
+import { Pollutant, PollutantData, Station } from '../../entities';
 
 @Injectable()
 export class PollutantDataService {
   constructor(
+    @InjectRepository(Pollutant) private pollutantRepository: Repository<Pollutant>,
     @InjectRepository(PollutantData) private pollutantDataRepository: Repository<PollutantData>,
     @InjectRepository(Station) private stationRepository: Repository<Station>,
     private connection: Connection,
@@ -29,9 +30,24 @@ WHERE station_id = ${closestStationId};
     `)) as { latestTimestamp: string }[];
     const latestTimestamp = latestTimestampRows[0].latestTimestamp;
 
-    return this.pollutantDataRepository.find({
+    const data = await this.pollutantDataRepository.find({
       where: { datetime: latestTimestamp, stationId: closestStationId },
     });
+
+    const aqiPollutant = await this.pollutantRepository.findOne({
+      where: { shortName: 'AQI' },
+    });
+
+    // if there is no AQI in latest data, get the most recent value for this station
+    if (!data.find((pollutantData) => pollutantData.pollutantId === aqiPollutant.id)) {
+      const aqiData = await this.pollutantDataRepository.findOne({
+        where: { stationId: closestStationId, pollutantId: aqiPollutant.id },
+        order: { datetime: 'DESC' },
+      });
+      data.push(aqiData);
+    }
+
+    return data;
   }
 
   public static computeClosestStation(
