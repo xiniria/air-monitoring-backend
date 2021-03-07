@@ -4,6 +4,7 @@ import * as request from 'supertest';
 import { Connection, getConnection } from 'typeorm';
 import * as dayjs from 'dayjs';
 import { truncateTables } from '../../util/truncate-tables';
+import { stripClassArr } from '../../util/strip-class';
 import { Pollutant, PollutantData, Station } from '../../entities';
 import { AppModule } from '../app/app.module';
 import { PollutantHistoryModule } from './pollutant-history.module';
@@ -107,13 +108,13 @@ describe('PollutantHistoryModule (E2E)', () => {
       .get('/pollutant-history/48.8471383/2.4294888')
       .expect(200)
       .expect(
-        [
+        stripClassArr([
           pollutantDataCoNew,
           pollutantDataNo2New,
           pollutantDataCoOld,
           pollutantDataNo2Old,
-        ].map((obj) => ({ ...obj })),
-      ) // strip the objects of their class
+        ]),
+      )
       .end(done);
   });
 
