@@ -1,7 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
+import * as dayjs from 'dayjs';
 import { Pollutant, PollutantData, Station } from '../../entities';
+import { PollutantsService } from '../pollutants/pollutants.service';
 
 @Injectable()
 export class PollutantDataService {
@@ -12,6 +14,8 @@ export class PollutantDataService {
     private connection: Connection,
   ) {}
 
+  private readonly logger = new Logger(PollutantsService.name);
+
   public async getClosestStationData(
     latitude: number,
     longitude: number,
@@ -21,6 +25,7 @@ export class PollutantDataService {
       latitude,
       longitude,
       allStations,
+      this.logger,
     );
 
     const latestTimestampRows = (await this.connection.query(`
@@ -29,6 +34,16 @@ FROM pollutant_data
 WHERE station_id = ${closestStationId};
     `)) as { latestTimestamp: string }[];
     const latestTimestamp = latestTimestampRows[0].latestTimestamp;
+
+    const now = dayjs();
+    const latestTimestampObj = dayjs(latestTimestamp);
+    const age = now.diff(latestTimestampObj, 'hour');
+
+    if (age > 6) {
+      this.logger.warn(
+        `Latest data for station with id ${closestStationId} is older than 6 hours (${age} hours)`,
+      );
+    }
 
     const data = await this.pollutantDataRepository.find({
       where: { datetime: latestTimestamp, stationId: closestStationId },
@@ -44,6 +59,10 @@ WHERE station_id = ${closestStationId};
         where: { stationId: closestStationId, pollutantId: aqiPollutant.id },
         order: { datetime: 'DESC' },
       });
+      this.logger.warn(
+        `No AQI in latest data (${latestTimestamp}) for station with id ${closestStationId}, ` +
+          `using older AQI instead (timestamp: ${aqiData.datetime})`,
+      );
       data.push(aqiData);
     }
 
@@ -54,6 +73,7 @@ WHERE station_id = ${closestStationId};
     latitude: number,
     longitude: number,
     stations: Station[],
+    logger?: Logger,
   ): number {
     let minDistance = Infinity;
     let closestStationId = stations[0].id;
@@ -70,6 +90,15 @@ WHERE station_id = ${closestStationId};
         closestStationId = station.id;
       }
     });
+
+    // we cannot use PollutantDataService.logger here since this is a static method
+    if (minDistance > 100 && logger) {
+      logger.warn(
+        `Closest station (id ${closestStationId}) is more than 100 km away (${Math.trunc(
+          minDistance,
+        )} km)`,
+      );
+    }
 
     return closestStationId;
   }

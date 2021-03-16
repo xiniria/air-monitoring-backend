@@ -1,9 +1,11 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import connectionOptions from '../../../ormconfig';
+import { LoggerMiddleware } from '../../middlewares/logger';
 import { PollutantDataModule } from '../pollutant-data/pollutant-data.module';
 import { PollutantModule } from '../pollutants/pollutants.module';
 import { PollutantHistoryModule } from '../pollutant-history/pollutant-history.module';
+
 @Module({
   imports: [
     TypeOrmModule.forRoot(connectionOptions),
@@ -12,4 +14,8 @@ import { PollutantHistoryModule } from '../pollutant-history/pollutant-history.m
     PollutantHistoryModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

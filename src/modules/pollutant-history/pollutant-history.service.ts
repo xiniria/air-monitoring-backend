@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Connection, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { PollutantData, Station } from '../../entities';
 import { PollutantDataService } from '../pollutant-data/pollutant-data.service';
 
@@ -9,8 +9,9 @@ export class PollutantHistoryService {
   constructor(
     @InjectRepository(PollutantData) private pollutantDataRepository: Repository<PollutantData>,
     @InjectRepository(Station) private stationRepository: Repository<Station>,
-    private connection: Connection,
   ) {}
+
+  private readonly logger = new Logger(PollutantHistoryService.name);
 
   public async getClosestStationHistory(
     latitude: number,
@@ -21,6 +22,7 @@ export class PollutantHistoryService {
       latitude,
       longitude,
       allStations,
+      this.logger,
     );
 
     return this.pollutantDataRepository.find({

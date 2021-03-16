@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
@@ -132,6 +133,19 @@ describe('PollutantDataService', () => {
       expect(
         PollutantDataService.computeClosestStation(48.8471383, 2.4294888, [paris, gif]),
       ).toEqual(paris.id));
+
+    it('should warn us if the closest station found is more than 100 km away', () => {
+      const logger = new Logger(__filename);
+      logger.warn = jest.fn();
+
+      // using Strasbourg coordinates
+      PollutantDataService.computeClosestStation(48.5692059, 7.6920542, [paris, gif], logger);
+
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledWith(
+        'Closest station (id 1) is more than 100 km away (398 km)',
+      );
+    });
   });
 
   describe('getClosestStationData', () => {
