@@ -5,6 +5,7 @@ import { LoggerMiddleware } from '../../middlewares/logger';
 import { PollutantDataModule } from '../pollutant-data/pollutant-data.module';
 import { PollutantModule } from '../pollutants/pollutants.module';
 import { PollutantHistoryModule } from '../pollutant-history/pollutant-history.module';
+import { MapDataModule } from '../map-data/map-data.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PollutantHistoryModule } from '../pollutant-history/pollutant-history.m
     PollutantDataModule,
     PollutantModule,
     PollutantHistoryModule,
+    MapDataModule,
   ],
 })
 export class AppModule {
