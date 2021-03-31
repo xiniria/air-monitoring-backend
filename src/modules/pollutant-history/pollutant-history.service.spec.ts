@@ -2,9 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
 import { mockConnectionFactory, mockRepositoryFactory, MockType } from '../../util/mock-database';
+import dayjs from '../../util/dayjs';
 import { Pollutant, PollutantData, Station } from '../../entities';
 import { PollutantHistoryService } from './pollutant-history.service';
-import * as dayjs from 'dayjs';
 
 describe('PollutantHistoryService', () => {
   let service: PollutantHistoryService;
