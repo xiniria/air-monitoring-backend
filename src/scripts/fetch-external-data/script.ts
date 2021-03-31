@@ -2,9 +2,9 @@ import fetch from 'node-fetch';
 import { createConnection, Repository } from 'typeorm';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
-import * as dayjs from 'dayjs';
 import connectionOptions from '../../../ormconfig';
 import { Pollutant, PollutantData, Station } from '../../entities';
+import dayjs from '../../util/dayjs';
 import { responseIsError, WaqiApiResponse, WaqiApiSuccess } from './waqi-api-response';
 import { WaqiDataValidator } from './validation/validation';
 

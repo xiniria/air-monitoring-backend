@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
-import * as dayjs from 'dayjs';
 import { Pollutant, PollutantData, Station } from '../../entities';
+import dayjs from '../../util/dayjs';
 import { PollutantsService } from '../pollutants/pollutants.service';
 
 @Injectable()
