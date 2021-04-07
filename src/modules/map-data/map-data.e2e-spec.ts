@@ -92,6 +92,7 @@ describe('MapDataModule (E2E)', () => {
 
     const oldTime = dayjs('2020-01-06T08:00:00Z').toISOString();
     const newTime = dayjs('2020-01-06T12:00:00Z').toISOString();
+    const tonight = dayjs('2020-01-06T18:00:00Z').toISOString();
 
     const parisPollutantDataCoOld = pollutantDataRepository.create({
       pollutantId: pollutantCo.id,
@@ -114,14 +115,24 @@ describe('MapDataModule (E2E)', () => {
       value: 1,
     });
 
+    const gifPollutantDataCoPrediction = pollutantDataRepository.create({
+      pollutantId: pollutantCo.id,
+      stationId: station2.id,
+      datetime: oldTime,
+      value: 2.3,
+      isPrediction: true,
+      predictionDatetime: tonight,
+    });
+
     [gifPollutantDataCo, parisPollutantDataCoNew] = await pollutantDataRepository.save([
       gifPollutantDataCo,
       parisPollutantDataCoNew,
       parisPollutantDataCoOld,
+      gifPollutantDataCoPrediction,
     ]);
   });
 
-  it('should return a correct response on route /map-data (GET)', (done) => {
+  it('should return a correct response on route /map-data (GET), without predictions', (done) => {
     const resultValidation = function (res) {
       const result = res.body;
       const expectedResult = [

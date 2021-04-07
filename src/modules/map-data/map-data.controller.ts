@@ -4,10 +4,10 @@ import { MapData } from './map-data.service';
 
 @Controller('map-data')
 export class MapDataController {
-  constructor(private readonly MapDataService: MapDataService) {}
+  constructor(private readonly mapDataService: MapDataService) {}
 
   @Get()
   public async getMapData(): Promise<MapData[]> {
-    return this.MapDataService.getMapData();
+    return this.mapDataService.getMapData();
   }
 }

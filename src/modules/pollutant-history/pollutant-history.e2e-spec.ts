@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { Connection, getConnection } from 'typeorm';
+import { Connection, getConnection, Repository } from 'typeorm';
 import { truncateTables } from '../../util/truncate-tables';
 import { stripClassArr } from '../../util/strip-class';
 import dayjs from '../../util/dayjs';
@@ -13,10 +13,19 @@ describe('PollutantHistoryModule (E2E)', () => {
   let app: INestApplication;
   let connection: Connection;
 
+  let pollutantNo2: Pollutant;
+  let station1: Station;
   let pollutantDataCoOld: PollutantData;
   let pollutantDataNo2Old: PollutantData;
   let pollutantDataCoNew: PollutantData;
   let pollutantDataNo2New: PollutantData;
+
+  let pollutantDataRepository: Repository<PollutantData>;
+
+  const veryOldTime = dayjs('2020-01-06T00:00:00Z').toISOString();
+  const oldTime = dayjs('2020-01-06T08:00:00Z').toISOString();
+  const newTime = dayjs('2020-01-06T12:00:00Z').toISOString();
+  const tonight = dayjs('2020-01-06T18:00:00Z').toISOString();
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -31,9 +40,9 @@ describe('PollutantHistoryModule (E2E)', () => {
 
     const stationRepository = connection.getRepository(Station);
     const pollutantRepository = connection.getRepository(Pollutant);
-    const pollutantDataRepository = connection.getRepository(PollutantData);
+    pollutantDataRepository = connection.getRepository(PollutantData);
 
-    const station1 = stationRepository.create({
+    station1 = stationRepository.create({
       name: 'Paris',
       latitude: 48.8534,
       longitude: 2.3488,
@@ -54,7 +63,7 @@ describe('PollutantHistoryModule (E2E)', () => {
       waqiName: 'co',
     });
 
-    const pollutantNo2 = pollutantRepository.create({
+    pollutantNo2 = pollutantRepository.create({
       shortName: 'NO2',
       fullName: 'Nitrogen dioxide',
       description: 'A pollutant',
@@ -63,9 +72,6 @@ describe('PollutantHistoryModule (E2E)', () => {
 
     await stationRepository.save([station1, station2]);
     await pollutantRepository.save([pollutantCo, pollutantNo2]);
-
-    const oldTime = dayjs('2020-01-06T08:00:00Z').toISOString();
-    const newTime = dayjs('2020-01-06T12:00:00Z').toISOString();
 
     pollutantDataCoOld = pollutantDataRepository.create({
       pollutantId: pollutantCo.id,
@@ -103,19 +109,78 @@ describe('PollutantHistoryModule (E2E)', () => {
     ]);
   });
 
-  it('should return a correct response on route /pollutant-history/:latitude/:longitude (GET)', (done) => {
-    return request(app.getHttpServer())
-      .get('/pollutant-history/48.8471383/2.4294888')
-      .expect(200)
-      .expect(
-        stripClassArr([
-          pollutantDataCoNew,
-          pollutantDataNo2New,
-          pollutantDataCoOld,
-          pollutantDataNo2Old,
-        ]),
-      )
-      .end(done);
+  describe('without predictions: route /pollutant-history/:latitude/:longitude (GET)', () => {
+    it('should return a correct response if there are no predictions', (done) => {
+      return request(app.getHttpServer())
+        .get('/pollutant-history/48.8471383/2.4294888')
+        .expect(200)
+        .expect(
+          stripClassArr([
+            pollutantDataCoNew,
+            pollutantDataNo2New,
+            pollutantDataCoOld,
+            pollutantDataNo2Old,
+          ]),
+        )
+        .end(done);
+    });
+  });
+
+  describe('with predictions: route /pollutant-history/:latitude/:longitude (GET)', () => {
+    beforeAll(async () => {
+      const pollutantDataNo2PredictionOld = pollutantDataRepository.create({
+        pollutantId: pollutantNo2.id,
+        stationId: station1.id,
+        datetime: veryOldTime,
+        value: 2.5,
+        isPrediction: true,
+        predictionDatetime: oldTime,
+      });
+
+      await pollutantDataRepository.save([pollutantDataNo2PredictionOld]);
+    });
+
+    it('should not return any predictions if all of them are before the latest data', () => {
+      return request(app.getHttpServer())
+        .get('/pollutant-history/48.8471383/2.4294888')
+        .expect(200)
+        .expect(
+          stripClassArr([
+            pollutantDataCoNew,
+            pollutantDataNo2New,
+            pollutantDataCoOld,
+            pollutantDataNo2Old,
+          ]),
+        );
+    });
+
+    it('should return only predictions that are after the latest data', async () => {
+      let pollutantDataNo2Prediction = pollutantDataRepository.create({
+        pollutantId: pollutantNo2.id,
+        stationId: station1.id,
+        datetime: newTime,
+        value: 2.3,
+        isPrediction: true,
+        predictionDatetime: tonight,
+      });
+
+      [pollutantDataNo2Prediction] = await pollutantDataRepository.save([
+        pollutantDataNo2Prediction,
+      ]);
+
+      await request(app.getHttpServer())
+        .get('/pollutant-history/48.8471383/2.4294888')
+        .expect(200)
+        .expect(
+          stripClassArr([
+            pollutantDataCoNew,
+            pollutantDataNo2New,
+            pollutantDataCoOld,
+            pollutantDataNo2Old,
+            pollutantDataNo2Prediction,
+          ]),
+        );
+    }, 10000);
   });
 
   afterAll(async () => {

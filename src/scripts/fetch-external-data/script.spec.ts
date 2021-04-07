@@ -303,7 +303,18 @@ Full response: ${JSON.stringify(response)}`),
           iso: '2020-12-05T13:00:00+01:00',
         },
         forecast: {
-          daily: {},
+          daily: {
+            co: [
+              { avg: 19, day: '2020-12-06', max: 25, min: 13 },
+              { avg: 7, day: '2020-12-07', max: 20, min: 2 },
+              { avg: 13, day: '2020-12-08', max: 20, min: 2 },
+            ],
+            uvi: [
+              { avg: 8, day: '2020-12-06', max: 13, min: 6 },
+              { avg: 17, day: '2020-12-07', max: 24, min: 8 },
+              { avg: 21, day: '2020-12-08', max: 24, min: 8 },
+            ],
+          },
         },
         debug: {
           sync: '2020-12-05T22:17:22+09:00',
@@ -317,7 +328,7 @@ Full response: ${JSON.stringify(response)}`),
       no2: pollutantNo2,
     };
 
-    it('should save data correctly if the pollutant is found', async () => {
+    it('should save data and predictions correctly if the pollutant is found', async () => {
       await insertDataInDb(
         response,
         (mockRepository as unknown) as Repository<PollutantData>,
@@ -325,13 +336,39 @@ Full response: ${JSON.stringify(response)}`),
         keyObj,
         [],
       );
-      expect(mockRepository.save).toHaveBeenCalledTimes(3);
+      expect(mockRepository.save).toHaveBeenCalledTimes(4);
       expect(mockRepository.save).toHaveBeenCalledWith({
         stationId: station.id,
         pollutantId: pollutantCo.id,
         datetime: '2020-12-05T13:00:00+01:00',
         value: 0.1,
       });
+      expect(mockRepository.save).toHaveBeenCalledWith([
+        {
+          stationId: station.id,
+          pollutantId: pollutantCo.id,
+          datetime: '2020-12-05T13:00:00+01:00',
+          value: 19,
+          isPrediction: true,
+          predictionDatetime: '2020-12-06T00:00:00.000Z',
+        },
+        {
+          stationId: station.id,
+          pollutantId: pollutantCo.id,
+          datetime: '2020-12-05T13:00:00+01:00',
+          value: 7,
+          isPrediction: true,
+          predictionDatetime: '2020-12-07T00:00:00.000Z',
+        },
+        {
+          stationId: station.id,
+          pollutantId: pollutantCo.id,
+          datetime: '2020-12-05T13:00:00+01:00',
+          value: 13,
+          isPrediction: true,
+          predictionDatetime: '2020-12-08T00:00:00.000Z',
+        },
+      ]);
     });
 
     it('should throw an error if an unknown pollutant is found', async () => {
@@ -355,6 +392,37 @@ Full response: ${JSON.stringify(response)}`),
         ),
       ).rejects.toThrowError(
         new Error(`Unknown pollutant "fakePollutant" received in WAQI API response.
+Full response: ${JSON.stringify(modifiedResponse)}`),
+      );
+    });
+
+    it('should throw an error if an unknown pollutant is found in predictions', async () => {
+      const modifiedResponse: WaqiApiSuccess = {
+        status: 'ok',
+        data: {
+          ...response.data,
+          forecast: {
+            daily: {
+              ...response.data.forecast.daily,
+              fakePollutant: [
+                { avg: 19, day: '2020-12-06', max: 13, min: 6 },
+                { avg: 3, day: '2020-12-07', max: 24, min: 8 },
+                { avg: 49, day: '2020-12-08', max: 24, min: 8 },
+              ],
+            },
+          },
+        },
+      };
+      await expect(
+        insertDataInDb(
+          modifiedResponse,
+          (mockRepository as unknown) as Repository<PollutantData>,
+          station,
+          keyObj,
+          [],
+        ),
+      ).rejects.toThrowError(
+        new Error(`Unknown pollutant "fakePollutant" received in WAQI API response (predictions).
 Full response: ${JSON.stringify(modifiedResponse)}`),
       );
     });
@@ -450,7 +518,7 @@ Full response: ${JSON.stringify(modifiedResponse)}`),
         keyObj,
         [],
       );
-      expect(mockRepository.save).toHaveBeenCalledTimes(2);
+      expect(mockRepository.save).toHaveBeenCalledTimes(3);
       expect(consoleInfoCalls).toEqual(['No AQI in API response for station 1.']);
 
       spy.mockRestore();

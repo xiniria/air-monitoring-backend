@@ -74,6 +74,7 @@ describe('PollutantDataModule (E2E)', () => {
 
     const oldTime = dayjs('2020-01-06T08:00:00Z').toISOString();
     const newTime = dayjs('2020-01-06T12:00:00Z').toISOString();
+    const tonight = dayjs('2020-01-06T18:00:00Z').toISOString();
 
     const pollutantDataCoOld = pollutantDataRepository.create({
       pollutantId: pollutantCo.id,
@@ -117,6 +118,15 @@ describe('PollutantDataModule (E2E)', () => {
       value: 46,
     });
 
+    const pollutantDataNo2Prediction = pollutantDataRepository.create({
+      pollutantId: pollutantNo2.id,
+      stationId: station1.id,
+      datetime: newTime,
+      value: 4.7,
+      isPrediction: true,
+      predictionDatetime: tonight,
+    });
+
     [
       pollutantDataCoNew,
       pollutantDataNo2New,
@@ -129,10 +139,11 @@ describe('PollutantDataModule (E2E)', () => {
       pollutantDataAqiNew,
       pollutantDataCoOld,
       pollutantDataNo2Old,
+      pollutantDataNo2Prediction,
     ]);
   });
 
-  it('should return a correct response on route /pollutant-data/:latitude/:longitude (GET)', (done) => {
+  it('should return a correct response on route /pollutant-data/:latitude/:longitude (GET), without predictions', (done) => {
     return request(app.getHttpServer())
       .get('/pollutant-data/48.8471383/2.4294888')
       .expect(200)

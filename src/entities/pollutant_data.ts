@@ -29,4 +29,10 @@ export class PollutantData extends Table {
   @ManyToOne(() => Pollutant)
   @JoinColumn({ name: 'pollutant_id' })
   pollutant: Pollutant;
+
+  @Column({ name: 'is_prediction', default: false })
+  isPrediction: boolean;
+
+  @Column({ name: 'prediction_datetime', transformer: timestampTzTransformer, default: null })
+  predictionDatetime: string;
 }

@@ -20,6 +20,7 @@ export class MapDataService {
       .query(`
 SELECT max(datetime) AS "latestTimestamp", station_id AS "stationId"
 FROM pollutant_data
+WHERE NOT is_prediction
 GROUP BY station_id;
     `);
     const stationIds = latestTimestamps.map(({ stationId }) => stationId);
@@ -27,6 +28,7 @@ GROUP BY station_id;
     const pollutantDataWhere = latestTimestamps.map(({ latestTimestamp, stationId }) => ({
       datetime: latestTimestamp,
       stationId,
+      isPrediction: false,
     }));
 
     const allData = await this.pollutantDataRepository.find({

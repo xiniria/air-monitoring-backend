@@ -89,6 +89,8 @@ describe('PollutantDataService', () => {
     pollutantId: pollutant.id,
     pollutant,
     value: 1.4,
+    isPrediction: false,
+    predictionDatetime: null,
   };
   const aqiData: PollutantData = {
     id: 2,
@@ -101,6 +103,8 @@ describe('PollutantDataService', () => {
     pollutantId: aqi.id,
     pollutant,
     value: 32,
+    isPrediction: false,
+    predictionDatetime: null,
   };
   const oldAqiData: PollutantData = {
     id: 2,
@@ -113,6 +117,8 @@ describe('PollutantDataService', () => {
     pollutantId: aqi.id,
     pollutant,
     value: 27,
+    isPrediction: false,
+    predictionDatetime: null,
   };
 
   describe('computeDistance', () => {
