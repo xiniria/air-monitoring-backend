@@ -56,17 +56,18 @@ export async function insertDataInDb(
   station: Station,
   waqiPollutantToDbPollutant: { [key: string]: Pollutant },
   pollutantDataPoints: PollutantDataPoint[],
-): Promise<number> {
+): Promise<{ insertedDataPoints: number; insertedPredictionPoints: number }> {
   const isoTime = response.data.time.iso;
   const isoTimeDayJs = dayjs(isoTime);
   let insertedDataPoints = 0;
+  let insertedPredictionPoints = 0;
 
   const existingDataPoints = pollutantDataPoints.filter(
     (dataPoint) => dataPoint.stationId === station.id && isoTimeDayJs.isSame(dataPoint.datetime),
   );
   if (existingDataPoints.length > 0) {
     console.info(`Data already saved for station ${station.id} at time ${isoTime}`);
-    return 0;
+    return { insertedDataPoints: 0, insertedPredictionPoints: 0 };
   }
 
   for (const [pollutantName, valueObject] of Object.entries({
@@ -78,11 +79,12 @@ export async function insertDataInDb(
       continue;
     }
     const pollutant: Pollutant | undefined = waqiPollutantToDbPollutant[pollutantName];
-    if (!pollutant)
+    if (!pollutant) {
       throw new Error(
         `Unknown pollutant "${pollutantName}" received in WAQI API response.\n` +
           `Full response: ${JSON.stringify(response)}`,
       );
+    }
 
     const pollutantData = pollutantDataRepository.create({
       stationId: station.id,
@@ -95,7 +97,40 @@ export async function insertDataInDb(
     insertedDataPoints++;
   }
 
-  return insertedDataPoints;
+  for (const [pollutantName, valueObject] of Object.entries(response.data.forecast.daily)) {
+    // We don't store UVI in DB
+    if (pollutantName === 'uvi') continue;
+
+    const pollutant: Pollutant | undefined = waqiPollutantToDbPollutant[pollutantName];
+    if (!pollutant) {
+      throw new Error(
+        `Unknown pollutant "${pollutantName}" received in WAQI API response (predictions).\n` +
+          `Full response: ${JSON.stringify(response)}`,
+      );
+    }
+
+    const pollutantData: PollutantData[] = [];
+    valueObject
+      // filter out past predictions (yes there are some)
+      .filter(({ day }) => dayjs(day).isAfter(isoTimeDayJs))
+      .forEach(({ avg, day }) => {
+        pollutantData.push(
+          pollutantDataRepository.create({
+            stationId: station.id,
+            pollutantId: pollutant.id,
+            datetime: isoTime,
+            value: avg, // we only use the average value given by the API
+            isPrediction: true,
+            predictionDatetime: dayjs.tz(day).toISOString(),
+          }),
+        );
+        insertedPredictionPoints++;
+      });
+
+    await pollutantDataRepository.save(pollutantData);
+  }
+
+  return { insertedDataPoints, insertedPredictionPoints };
 }
 
 export async function fetchExternalData() {
@@ -127,12 +162,14 @@ FROM (
                         ORDER BY datetime DESC
                     ) AS rank
     FROM pollutant_data
+    WHERE NOT is_prediction
 ) AS rpd
 WHERE rpd.rank <= 5;
   `)) as PollutantDataPoint[];
   console.info('Data fetched');
 
   let insertedDataPoints = 0;
+  let insertedPredictionPoints = 0;
 
   try {
     await Promise.all(
@@ -142,7 +179,10 @@ WHERE rpd.rank <= 5;
         console.info(`Validating API response for station ${station.id}...`);
         await validateApiResponse(response, station);
         console.info(`Inserting new data in DB for station ${station.id}...`);
-        const newDataPoints = await insertDataInDb(
+        const {
+          insertedDataPoints: newDataPoints,
+          insertedPredictionPoints: newPredictionPoints,
+        } = await insertDataInDb(
           response,
           pollutantDataRepository,
           station,
@@ -150,11 +190,12 @@ WHERE rpd.rank <= 5;
           lastDataPoints,
         );
         insertedDataPoints += newDataPoints;
+        insertedPredictionPoints += newPredictionPoints;
       }),
     );
 
     console.info(
-      `Inserted ${insertedDataPoints} new data points in DB for ${stations.length} stations and ${pollutants.length} pollutants.`,
+      `Inserted ${insertedDataPoints} new data points and ${insertedPredictionPoints} new prediction points in DB for ${stations.length} stations and ${pollutants.length} pollutants.`,
     );
   } catch (err: any) /* istanbul ignore next */ {
     console.error(err);

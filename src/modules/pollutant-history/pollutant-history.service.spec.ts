@@ -75,6 +75,8 @@ describe('PollutantHistoryService', () => {
     pollutantId: pollutant.id,
     pollutant,
     value: 1.4,
+    isPrediction: false,
+    predictionDatetime: null,
   };
   const pollutantDataNewest: PollutantData = {
     id: 1,
@@ -87,6 +89,8 @@ describe('PollutantHistoryService', () => {
     pollutantId: pollutant.id,
     pollutant,
     value: 1.4,
+    isPrediction: false,
+    predictionDatetime: null,
   };
   const pollutantDataOldest: PollutantData = {
     id: 1,
@@ -99,6 +103,8 @@ describe('PollutantHistoryService', () => {
     pollutantId: pollutant.id,
     pollutant,
     value: 1.4,
+    isPrediction: false,
+    predictionDatetime: null,
   };
 
   describe('getClosestStationHistory', () => {

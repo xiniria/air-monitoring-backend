@@ -31,7 +31,7 @@ export class PollutantDataService {
     const latestTimestampRows = (await this.connection.query(`
 SELECT max(datetime) AS "latestTimestamp"
 FROM pollutant_data
-WHERE station_id = ${closestStationId};
+WHERE station_id = ${closestStationId} AND NOT is_prediction;
     `)) as { latestTimestamp: string }[];
     const latestTimestamp = latestTimestampRows[0].latestTimestamp;
 
@@ -46,7 +46,7 @@ WHERE station_id = ${closestStationId};
     }
 
     const data = await this.pollutantDataRepository.find({
-      where: { datetime: latestTimestamp, stationId: closestStationId },
+      where: { datetime: latestTimestamp, stationId: closestStationId, isPrediction: false },
     });
 
     const aqiPollutant = await this.pollutantRepository.findOne({
@@ -56,7 +56,7 @@ WHERE station_id = ${closestStationId};
     // if there is no AQI in latest data, get the most recent value for this station
     if (!data.find((pollutantData) => pollutantData.pollutantId === aqiPollutant.id)) {
       const aqiData = await this.pollutantDataRepository.findOne({
-        where: { stationId: closestStationId, pollutantId: aqiPollutant.id },
+        where: { stationId: closestStationId, pollutantId: aqiPollutant.id, isPrediction: false },
         order: { datetime: 'DESC' },
       });
       this.logger.warn(

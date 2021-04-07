@@ -29,7 +29,6 @@
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/src/main",
     "test": "npm run test:unit && npm run test:e2e",
     "test:cov": "COV_OUTPUT=\"false\" npm run test:unit:cov && COV_OUTPUT=\"false\" npm run test:e2e:cov && npm run merge-coverage",
     "test:unit": "IS_TS_NODE=\"true\" jest --config jest.unit.config.ts",

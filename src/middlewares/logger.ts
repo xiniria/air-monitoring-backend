@@ -16,7 +16,7 @@ export class LoggerMiddleware implements NestMiddleware {
 
       const logString = `${method} ${path} ${statusCode} ${contentLength} - ${userAgent} ${ip}`;
       if (statusCode >= 400 && statusCode < 500) this.logger.warn(logString);
-      else if (statusCode > 500) this.logger.error(logString);
+      else if (statusCode >= 500) this.logger.error(logString);
       else this.logger.log(logString);
     });
 

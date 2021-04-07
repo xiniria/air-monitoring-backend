@@ -4,6 +4,8 @@ const customReduce = (columnName: string): string => {
   switch (columnName) {
     case 'id':
       return 'id';
+    case 'is': // boolean columns
+      return 'is';
     case 'datetime':
       return 'dt';
     default:
